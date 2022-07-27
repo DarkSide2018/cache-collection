@@ -7,11 +7,13 @@ buildscript {
     }
 
     dependencies {
+        classpath "org.flywaydb:flyway-core:9.0.2"
         classpath 'org.jooq:jooq-codegen:3.17.2'
         classpath 'org.postgresql:postgresql:42.4.0'
     }
 }
 plugins {
+    id 'org.flywaydb.flyway' version '9.0.2'
     id 'nu.studer.jooq' version '7.1.1'
     id 'org.springframework.boot' version '2.6.6'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
@@ -112,3 +114,12 @@ jooq {
         }
     }
 }
+flyway {
+    url = 'jdbc:postgresql://localhost:5432/petclinic'
+    user = 'petclinic'
+    driver = 'org.postgresql.Driver'
+    baselineOnMigrate = true
+    password = 'petclinic'
+    schemas = ['public']
+}
+build.dependsOn(flywayMigrate)
