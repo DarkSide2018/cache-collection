@@ -1,6 +1,10 @@
 import org.jooq.codegen.GenerationTool
+import org.jooq.meta.jaxb.ForcedType
 import org.jooq.meta.jaxb.*
+
 buildscript {
+    String jooqVersion = '3.14.15'
+
     repositories {
         mavenLocal()
         mavenCentral()
@@ -8,10 +12,11 @@ buildscript {
 
     dependencies {
         classpath "org.flywaydb:flyway-core:9.0.2"
-        classpath 'org.jooq:jooq-codegen:3.17.2'
+        classpath 'org.jooq:jooq-codegen:'+jooqVersion
         classpath 'org.postgresql:postgresql:42.4.0'
     }
 }
+
 plugins {
     id 'org.flywaydb.flyway' version '9.0.2'
     id 'nu.studer.jooq' version '7.1.1'
@@ -19,7 +24,7 @@ plugins {
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'java'
 }
-
+String jooqVersion = '3.14.15'
 apply plugin: 'java'
 
 group = 'org.springframework.samples'
@@ -43,7 +48,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'javax.cache:cache-api'
-    implementation group: 'org.jooq', name: 'jooq', version: '3.17.2'
+    implementation group: 'org.jooq', name: 'jooq', version: jooqVersion
     runtimeOnly 'org.springframework.boot:spring-boot-starter-actuator'
     runtimeOnly 'org.webjars:webjars-locator-core'
     runtimeOnly "org.webjars.npm:bootstrap:${webjarsBootstrapVersion}"
@@ -62,41 +67,23 @@ test {
 }
 
 jooq {
-    version = '3.17.2'
-
+    version = jooqVersion
     configurations {
         main {
             generationTool {
+                generateSchemaSourceOnCompilation.set(false)
                 logging = Logging.WARN
                 jdbc {
                     driver = 'org.postgresql.Driver'
                     url = 'jdbc:postgresql://localhost:5432/petclinic'
                     user = 'petclinic'
                     password = 'petclinic'
-                    properties {
-                        property {
-                            key = 'PAGE_SIZE'
-                            value = 2048
-                        }
-                    }
                 }
                 generator {
                     name = 'org.jooq.codegen.DefaultGenerator'
                     database {
                         name = 'org.jooq.meta.postgres.PostgresDatabase'
                         inputSchema = 'public'
-                        forcedTypes {
-                            forcedType {
-                                name = 'varchar'
-                                includeExpression = '.*'
-                                includeTypes = 'JSONB?'
-                            }
-                            forcedType {
-                                name = 'varchar'
-                                includeExpression = '.*'
-                                includeTypes = 'INET'
-                            }
-                        }
                     }
                     generate {
                         deprecated = false
