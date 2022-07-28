@@ -83,7 +83,6 @@ public class OwnerRepository {
 	public Owner findById(Integer id) {
 		return context.select(DSL.asterisk())
 			.from(OWNERS)
-			.leftJoin(PETS).on(PETS.OWNER_ID.eq(OWNERS.ID))
 			.where(OWNERS.ID.eq(id))
 			.fetchOneInto(Owner.class);
 	}
