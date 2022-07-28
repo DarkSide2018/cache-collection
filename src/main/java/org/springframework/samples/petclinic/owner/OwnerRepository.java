@@ -15,68 +15,93 @@
  */
 package org.springframework.samples.petclinic.owner;
 
-import java.util.List;
-
+import com.petclinic.tables.records.OwnersRecord;
+import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Repository class for <code>Owner</code> domain objects All method names are compliant
- * with Spring Data naming conventions so this interface can easily be extended for Spring
- * Data. See:
- * https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#repositories.query-methods.query-creation
- *
- * @author Ken Krebs
- * @author Juergen Hoeller
- * @author Sam Brannen
- * @author Michael Isvy
- */
-public interface OwnerRepository extends Repository<Owner, Integer> {
+import java.util.List;
+
+import static com.petclinic.Tables.OWNERS;
+import static com.petclinic.Tables.PETS;
+import static com.petclinic.tables.Types.TYPES;
+
+@Repository
+public class OwnerRepository {
+	private final DSLContext context;
+
+	public OwnerRepository(DSLContext context) {
+		this.context = context;
+	}
 
 	/**
 	 * Retrieve all {@link PetType}s from the data store.
+	 *
 	 * @return a Collection of {@link PetType}s.
 	 */
-	@Query("SELECT ptype FROM PetType ptype ORDER BY ptype.name")
 	@Transactional(readOnly = true)
-	List<PetType> findPetTypes();
+	public List<PetType> findPetTypes() {
+		return context
+			.select(DSL.asterisk())
+			.from(TYPES)
+			.orderBy(TYPES.NAME)
+			.fetchInto(PetType.class);
+	}
 
 	/**
 	 * Retrieve {@link Owner}s from the data store by last name, returning all owners
 	 * whose last name <i>starts</i> with the given name.
+	 *
 	 * @param lastName Value to search for
 	 * @return a Collection of matching {@link Owner}s (or an empty Collection if none
 	 * found)
 	 */
 
-	@Query("SELECT DISTINCT owner FROM Owner owner left join  owner.pets WHERE owner.lastName LIKE :lastName% ")
+
 	@Transactional(readOnly = true)
-	Page<Owner> findByLastName(@Param("lastName") String lastName, Pageable pageable);
+	public Page<Owner> findByLastName(String lastName) {
+
+		List<Owner> ownerList = context.select(DSL.asterisk())
+			.from(OWNERS)
+			.leftJoin(PETS).on(PETS.OWNER_ID.eq(OWNERS.ID))
+			.where(OWNERS.LAST_NAME.like(lastName + "%"))
+			.fetchInto(Owner.class);
+		return new PageImpl<Owner>(ownerList);
+	}
 
 	/**
 	 * Retrieve an {@link Owner} from the data store by id.
+	 *
 	 * @param id the id to search for
 	 * @return the {@link Owner} if found
 	 */
-	@Query("SELECT owner FROM Owner owner left join fetch owner.pets WHERE owner.id =:id")
 	@Transactional(readOnly = true)
-	Owner findById(@Param("id") Integer id);
+	public Owner findById(Integer id) {
+		return context.select(DSL.asterisk())
+			.from(OWNERS)
+			.leftJoin(PETS).on(PETS.OWNER_ID.eq(OWNERS.ID))
+			.where(OWNERS.ID.eq(id))
+			.fetchOneInto(Owner.class);
+	}
 
 	/**
 	 * Save an {@link Owner} to the data store, either inserting or updating it.
+	 *
 	 * @param owner the {@link Owner} to save
+	 * @return
 	 */
-	void save(Owner owner);
-
-	/**
-	 * Returnes all the owners from data store
-	 **/
-	@Query("SELECT owner FROM Owner owner")
-	@Transactional(readOnly = true)
-	Page<Owner> findAll(Pageable pageable);
-
+	public OwnersRecord save(Owner owner) {
+		owner.setId(context.nextval("owners_id_seq").intValue());
+		return context
+			.insertInto(OWNERS)
+			.set(context.newRecord(OWNERS, owner))
+			.returning().fetchOne();
+	}
+	public List<Owner> findAll(){
+		return context.select(DSL.asterisk()).from(OWNERS).fetchInto(Owner.class);
+	}
 }

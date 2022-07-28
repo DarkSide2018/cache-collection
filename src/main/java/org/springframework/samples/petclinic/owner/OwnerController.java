@@ -20,6 +20,7 @@ import java.util.Map;
 
 import javax.validation.Valid;
 
+import com.petclinic.tables.records.OwnersRecord;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -75,8 +76,8 @@ class OwnerController {
 			return VIEWS_OWNER_CREATE_OR_UPDATE_FORM;
 		}
 		else {
-			this.owners.save(owner);
-			return "redirect:/owners/" + owner.getId();
+			OwnersRecord ownersRecord = owners.save(owner);
+			return "redirect:/owners/" + ownersRecord.getId();
 		}
 	}
 
@@ -124,10 +125,7 @@ class OwnerController {
 	}
 
 	private Page<Owner> findPaginatedForOwnersLastName(int page, String lastname) {
-
-		int pageSize = 5;
-		Pageable pageable = PageRequest.of(page - 1, pageSize);
-		return owners.findByLastName(lastname, pageable);
+		return owners.findByLastName(lastname);
 
 	}
 

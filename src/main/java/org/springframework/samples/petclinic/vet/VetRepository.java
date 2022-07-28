@@ -15,11 +15,13 @@
  */
 package org.springframework.samples.petclinic.vet;
 
-import org.springframework.cache.annotation.Cacheable;
+import com.petclinic.tables.Vets;
+import org.jooq.DSLContext;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.Repository;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -35,26 +37,37 @@ import java.util.Collection;
  * @author Sam Brannen
  * @author Michael Isvy
  */
-public interface VetRepository extends Repository<Vet, Integer> {
+@Repository
+public class VetRepository {
+	private final DSLContext context;
+
+	public VetRepository(DSLContext context) {
+		this.context = context;
+	}
 
 	/**
 	 * Retrieve all <code>Vet</code>s from the data store.
+	 *
 	 * @return a <code>Collection</code> of <code>Vet</code>s
 	 */
 	@Transactional(readOnly = true)
-	@Cacheable("vets")
-	Collection<Vet> findAll() throws DataAccessException;
+	public Collection<Vet> findAll() {
+		return context
+			.selectFrom(Vets.VETS)
+			.fetchInto(Vet.class);
+	}
+
+	;
 
 	/**
 	 * Retrieve all <code>Vet</code>s from data store in Pages
+	 *
 	 * @param pageable
 	 * @return
 	 * @throws DataAccessException
 	 */
 	@Transactional(readOnly = true)
-	@Cacheable("vets")
-	Page<Vet> findAll(Pageable pageable) throws DataAccessException;
-
-	;
-
+	Page<Vet> findAll(Pageable pageable) throws DataAccessException {
+		return new PageImpl<>(context.selectFrom(Vets.VETS).fetchInto(Vet.class));
+	}
 }
