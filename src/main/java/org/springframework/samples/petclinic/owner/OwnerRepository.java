@@ -18,16 +18,16 @@ package org.springframework.samples.petclinic.owner;
 import com.petclinic.tables.records.OwnersRecord;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.samples.petclinic.pet.PetType;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 import static com.petclinic.Tables.OWNERS;
-import static com.petclinic.Tables.PETS;
 import static com.petclinic.tables.Types.TYPES;
 
 @Repository
@@ -67,7 +67,6 @@ public class OwnerRepository {
 
 		List<Owner> ownerList = context.select(DSL.asterisk())
 			.from(OWNERS)
-			.leftJoin(PETS).on(PETS.OWNER_ID.eq(OWNERS.ID))
 			.where(OWNERS.LAST_NAME.like(lastName + "%"))
 			.fetchInto(Owner.class);
 		return new PageImpl<Owner>(ownerList);
@@ -80,6 +79,7 @@ public class OwnerRepository {
 	 * @return the {@link Owner} if found
 	 */
 	@Transactional(readOnly = true)
+	@Cacheable("owner")
 	public Owner findById(Integer id) {
 		return context.select(DSL.asterisk())
 			.from(OWNERS)
@@ -100,7 +100,13 @@ public class OwnerRepository {
 			.set(context.newRecord(OWNERS, owner))
 			.returning().fetchOne();
 	}
-	public List<Owner> findAll(){
+
+	public void update(Owner owner) {
+		OwnersRecord record = context.newRecord(OWNERS, owner);
+		record.update();
+	}
+
+	public List<Owner> findAll() {
 		return context.select(DSL.asterisk()).from(OWNERS).fetchInto(Owner.class);
 	}
 }
