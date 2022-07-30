@@ -93,6 +93,7 @@ public class OwnerRepository {
 	 * @param owner the {@link Owner} to save
 	 * @return
 	 */
+	@InvalidateOwnerCache
 	public OwnersRecord save(Owner owner) {
 		owner.setId(context.nextval("owners_id_seq").intValue());
 		return context
