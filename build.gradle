@@ -60,9 +60,6 @@ dependencies {
     runtimeOnly 'org.webjars:webjars-locator-core'
     runtimeOnly "org.webjars.npm:bootstrap:${webjarsBootstrapVersion}"
     runtimeOnly "org.webjars.npm:font-awesome:${webjarsFontawesomeVersion}"
-    runtimeOnly 'org.ehcache:ehcache'
-    runtimeOnly 'com.h2database:h2'
-    runtimeOnly 'mysql:mysql-connector-java'
     runtimeOnly 'org.postgresql:postgresql'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

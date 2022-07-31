@@ -101,12 +101,11 @@ public class OwnerRepository {
 			.set(context.newRecord(OWNERS, owner))
 			.returning().fetchOne();
 	}
-
+	@InvalidateOwnerCache
 	public void update(Owner owner) {
 		OwnersRecord record = context.newRecord(OWNERS, owner);
 		record.update();
 	}
-
 	public List<Owner> findAll() {
 		return context.select(DSL.asterisk()).from(OWNERS).fetchInto(Owner.class);
 	}
